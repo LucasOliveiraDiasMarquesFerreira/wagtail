@@ -825,6 +825,11 @@
 * Inju Michorius
 * Jeroen de Vries
 * Romein van Buren
+* Chris Shenton
+* Nathanaël Jourdane
+* Vaughn Dickson
+* Ansuman Shukla
+* Nayanshi Singh
 
 ## Translators
 

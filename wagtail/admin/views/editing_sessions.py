@@ -4,10 +4,12 @@ from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.http import Http404, JsonResponse
 from django.shortcuts import get_object_or_404
+from django.urls import reverse
 from django.utils import timezone
 from django.views.decorators.http import require_POST
 
 from wagtail.admin.models import EditingSession
+from wagtail.admin.ui.editing_sessions import EditingSessionsList
 from wagtail.admin.utils import get_user_display_name
 from wagtail.models import Page, Revision, RevisionMixin
 from wagtail.permissions import page_permission_policy
@@ -69,7 +71,7 @@ def ping(request, app_label, model_name, object_id, session_id):
             last_seen_at__gte=timezone.now() - timezone.timedelta(minutes=1),
         )
         .exclude(id=session.id)
-        .select_related("user")
+        .select_related("user", "user__wagtail_userprofile")
         .order_by("-last_seen_at")
     )
 
@@ -161,6 +163,13 @@ def ping(request, app_label, model_name, object_id, session_id):
     return JsonResponse(
         {
             "session_id": session.id,
+            "ping_url": reverse(
+                "wagtailadmin_editing_sessions:ping",
+                args=(app_label, model_name, object_id, session.id),
+            ),
+            "release_url": reverse(
+                "wagtailadmin_editing_sessions:release", args=(session.id,)
+            ),
             "other_sessions": [
                 {
                     "session_id": other_session["session_id"],
@@ -171,6 +180,7 @@ def ping(request, app_label, model_name, object_id, session_id):
                 }
                 for other_session in other_sessions
             ],
+            "html": EditingSessionsList(session, other_sessions).render_html(),
         }
     )
 
